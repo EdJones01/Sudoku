@@ -57,10 +57,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
         drawGrid(g2);
 
-        if (showGuidelines)
+        if (showGuidelines && mouseWithinPanel())
             drawGuidelines(g2);
 
-        if (showHighlighting)
+        if (showHighlighting&& mouseWithinPanel())
             drawHighlighting(g2);
 
         if (gameOver)
@@ -126,6 +126,11 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         g2.setColor(getBackground());
         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 40f));
         Tools.centerString(g2, getBounds(), "You Win!");
+    }
+
+    private boolean mouseWithinPanel() {
+        return mouseLocation.getX() > -1 && mouseLocation.getX() <tileSize*9 &&
+                mouseLocation.getY() > -1 && mouseLocation.getY() < tileSize*9;
     }
 
     private boolean validMove(int x, int y, int value) {
