@@ -54,17 +54,31 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         tileSize = getWidth() / 9;
+
+        drawGrid(g2);
+
+        if (showGuidelines)
+            drawGuidelines(g2);
+
+        if (showHighlighting)
+            drawHighlighting(g2);
+
+        if (gameOver)
+           drawGameOverScreen(g2);
+    }
+
+    private void drawGrid(Graphics2D g2) {
         int x = 0;
         int y = 0;
         int thickGridSize = 4;
         int thinGridSize = 1;
+
         g2.drawRect(x, y, 9 * tileSize, 9 * tileSize);
         for (int i = 0; i < 10; i++) {
             if (i % 3 == 0)
                 g2.setStroke(new BasicStroke(thickGridSize));
             else
                 g2.setStroke(new BasicStroke(thinGridSize));
-
             g2.drawLine(x, y + i * tileSize, x + 9 * tileSize, y + i * tileSize);
             g2.drawLine(x + i * tileSize, y, x + i * tileSize, y + 9 * tileSize);
         }
@@ -81,37 +95,37 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
                 }
             }
         }
+    }
 
-        if (showGuidelines) {
-            int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
-            int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
-            g2.setColor(new Color(255, 255, 255, 10));
-            g2.fillRect(selectedX * tileSize, 0, tileSize, getHeight());
-            g2.fillRect(0, selectedY * tileSize, getWidth(), tileSize);
-        }
+    private void drawGuidelines(Graphics2D g2) {
+        int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
+        int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
+        g2.setColor(new Color(255, 255, 255, 10));
+        g2.fillRect(selectedX * tileSize, 0, tileSize, getHeight());
+        g2.fillRect(0, selectedY * tileSize, getWidth(), tileSize);
+    }
 
-        if (showHighlighting) {
-            int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
-            int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
-            int highlightedNumber = getTile(selectedX, selectedY);
-            if(highlightedNumber != 0) {
-                g2.setColor(new Color(0, 0, 255, 20));
-                for (int i = 0; i < 9; i++) {
-                    for (int j = 0; j < 9; j++) {
-                        if (grid[i][j] == highlightedNumber)
-                            g2.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
-                    }
+    private void drawHighlighting(Graphics2D g2) {
+        int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
+        int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
+        int highlightedNumber = getTile(selectedX, selectedY);
+        if(highlightedNumber != 0) {
+            g2.setColor(new Color(0, 0, 255, 15));
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    if (grid[i][j] == highlightedNumber)
+                        g2.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
                 }
             }
         }
+    }
 
-        if (gameOver) {
-            g2.setColor(new Color(255, 255, 255, 150));
-            g2.fillRect(0, 0, getWidth(), getHeight());
-            g2.setColor(getBackground());
-            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 40f));
-            Tools.centerString(g2, getBounds(), "You Win!");
-        }
+    private void drawGameOverScreen(Graphics2D g2) {
+        g2.setColor(new Color(255, 255, 255, 150));
+        g2.fillRect(0, 0, getWidth(), getHeight());
+        g2.setColor(getBackground());
+        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 40f));
+        Tools.centerString(g2, getBounds(), "You Win!");
     }
 
     private boolean validMove(int x, int y, int value) {
