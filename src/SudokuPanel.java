@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.*;
@@ -34,8 +35,9 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     }
 
     private void setTile(int x, int y, int value) {
-        if (validMove(x, y, value))
+        if (validMove(x, y, value)) {
             grid[y][x] = value;
+        }
     }
 
     private void setTile(Point p, int value) {
@@ -68,7 +70,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         for (int row = 0; row < 9; row++) {
             for (int col = 0; col < 9; col++) {
                 if (grid[row][col] != 0) {
-                    if (!startingValues[row][col])
+                    if (startingValues[row][col])
                         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 30f));
                     else
                         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 30f));
@@ -88,9 +90,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     }
 
     private boolean validMove(int x, int y, int value) {
-        if (value == 0) {
+        if (startingValues[y][x])
+            return false;
+        if (value == 0)
             return true;
-        }
 
         for (int i = 0; i < 9; i++) {
             if (getTile(x, i) == value || getTile(i, y) == value) {

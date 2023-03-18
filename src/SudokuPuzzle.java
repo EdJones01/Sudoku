@@ -23,6 +23,9 @@ public class SudokuPuzzle {
     private final boolean[][] startingValue = new boolean[9][9];
 
     public SudokuPuzzle(int difficulty) {
+        for (boolean[] booleans : startingValue)
+            Arrays.fill(booleans, true);
+        
         generate(difficulty);
     }
 
@@ -51,7 +54,7 @@ public class SudokuPuzzle {
             int y = random.nextInt(9);
             if (grid[x][y] != 0) {
                 grid[x][y] = 0;
-                startingValue[x][y] = true;
+                startingValue[x][y] = false;
                 count++;
             }
         }
