@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.*;
 
@@ -33,7 +34,8 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     }
 
     private void setTile(int x, int y, int value) {
-        grid[y][x] = value;
+        if (validMove(x, y, value))
+            grid[y][x] = value;
     }
 
     private void setTile(Point p, int value) {
@@ -126,13 +128,11 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
             int num = Integer.parseInt(character);
             int x = (int) Math.floor(mouseLocation.getX() / tileSize);
             int y = (int) Math.floor(mouseLocation.getY() / tileSize);
-            if (validMove(x, y, num)) {
-                setTile(mouseLocation, num);
-                if (checkWin()) {
-                    gameOver = true;
-                }
-                repaint();
+            setTile(mouseLocation, num);
+            if (checkWin()) {
+                gameOver = true;
             }
+            repaint();
         } catch (Exception ignored) {
 
         }
@@ -145,7 +145,8 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-        //setTile(mouseLocation, 10);
+        System.out.println("press");
+        new InputWorker().execute();
         repaint();
     }
 
@@ -190,4 +191,27 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     public void mouseDragged(MouseEvent e) {
 
     }
+
+    private class InputWorker extends SwingWorker<Integer, Void> {
+        Point location;
+
+        @Override
+        protected Integer doInBackground() throws Exception {
+            location = new Point((int) mouseLocation.getX(), (int) mouseLocation.getY());
+            NumberInputFrame buttonInput = new NumberInputFrame();
+            return buttonInput.getUserInput();
+        }
+
+        @Override
+        protected void done() {
+            try {
+                int input = get();
+                setTile(location, input);
+                repaint();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
+
