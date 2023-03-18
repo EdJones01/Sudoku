@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 
 public class NumberInputFrame {
     private String userInput = null;
@@ -12,6 +11,8 @@ public class NumberInputFrame {
 
         JPanel panel = new JPanel(new GridLayout(3, 3, 5, 5));
         panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        panel.setFocusable(true);
+        panel.requestFocus();
 
         panel.setPreferredSize(new Dimension(250, 250));
         ActionListener buttonListener = new ActionListener() {
@@ -28,8 +29,23 @@ public class NumberInputFrame {
             JButton button = new JButton(String.valueOf(i));
             button.setFont(button.getFont().deriveFont(Font.PLAIN, 30));
             button.addActionListener(buttonListener);
+            button.setFocusable(false);
             panel.add(button);
         }
+
+        panel.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                String character = "" + e.getKeyChar();
+                try {
+                    Integer.parseInt(character);
+                    userInput = character;
+                    frame.dispose();
+                } catch (Exception ignored) {
+                    frame.dispose();
+                }
+            }
+        });
 
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         frame.pack();

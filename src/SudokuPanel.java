@@ -126,8 +126,6 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         String character = "" + e.getKeyChar();
         try {
             int num = Integer.parseInt(character);
-            int x = (int) Math.floor(mouseLocation.getX() / tileSize);
-            int y = (int) Math.floor(mouseLocation.getY() / tileSize);
             setTile(mouseLocation, num);
             if (checkWin()) {
                 gameOver = true;
@@ -145,7 +143,6 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-        System.out.println("press");
         new InputWorker().execute();
         repaint();
     }
@@ -154,6 +151,28 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     public void actionPerformed(ActionEvent e) {
         setupPuzzle(Integer.parseInt(e.getActionCommand()));
         repaint();
+    }
+
+    private class InputWorker extends SwingWorker<Integer, Void> {
+        Point location;
+
+        @Override
+        protected Integer doInBackground() {
+            location = new Point((int) mouseLocation.getX(), (int) mouseLocation.getY());
+            NumberInputFrame buttonInput = new NumberInputFrame();
+            return buttonInput.getUserInput();
+        }
+
+        @Override
+        protected void done() {
+            try {
+                int input = get();
+                setTile(location, input);
+                repaint();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -191,27 +210,4 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     public void mouseDragged(MouseEvent e) {
 
     }
-
-    private class InputWorker extends SwingWorker<Integer, Void> {
-        Point location;
-
-        @Override
-        protected Integer doInBackground() throws Exception {
-            location = new Point((int) mouseLocation.getX(), (int) mouseLocation.getY());
-            NumberInputFrame buttonInput = new NumberInputFrame();
-            return buttonInput.getUserInput();
-        }
-
-        @Override
-        protected void done() {
-            try {
-                int input = get();
-                setTile(location, input);
-                repaint();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 }
-
