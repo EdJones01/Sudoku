@@ -9,8 +9,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     private int[][] grid = new int[9][9];
     private int tileSize;
     private boolean[][] startingValues;
-    private Point mouseLocation;
+    private Point mouseLocation = new Point(0, 0);
     private boolean gameOver;
+    private boolean showGuidelines = false;
+    private boolean showHighlighting = false;
 
     public SudokuPanel() {
         addMouseListener(this);
@@ -67,15 +69,38 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
             g2.drawLine(x + i * tileSize, y, x + i * tileSize, y + 9 * tileSize);
         }
 
-        for (int row = 0; row < 9; row++) {
-            for (int col = 0; col < 9; col++) {
-                if (grid[row][col] != 0) {
-                    if (startingValues[row][col])
-                        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 30f));
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (grid[i][j] != 0) {
+                    if (startingValues[i][j])
+                        g2.setFont(g2.getFont().deriveFont(Font.BOLD, 30));
                     else
-                        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 30f));
-                    Tools.centerString(g2, new Rectangle(x + col * tileSize, y + row *
-                            tileSize, tileSize, tileSize), 0, 0, Integer.toString(grid[row][col]));
+                        g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 26));
+                    Tools.centerString(g2, new Rectangle(x + j * tileSize, y + i *
+                            tileSize, tileSize, tileSize), 0, 0, Integer.toString(grid[i][j]));
+                }
+            }
+        }
+
+        if (showGuidelines) {
+            int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
+            int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
+            g2.setColor(new Color(255, 255, 255, 10));
+            g2.fillRect(selectedX * tileSize, 0, tileSize, getHeight());
+            g2.fillRect(0, selectedY * tileSize, getWidth(), tileSize);
+        }
+
+        if (showHighlighting) {
+            int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
+            int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
+            int highlightedNumber = getTile(selectedX, selectedY);
+            if(highlightedNumber != 0) {
+                g2.setColor(new Color(0, 0, 255, 20));
+                for (int i = 0; i < 9; i++) {
+                    for (int j = 0; j < 9; j++) {
+                        if (grid[i][j] == highlightedNumber)
+                            g2.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
+                    }
                 }
             }
         }
@@ -125,6 +150,16 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     public void keyPressed(KeyEvent e) {
         if (gameOver)
             return;
+        if (e.getKeyCode() == KeyEvent.VK_G) {
+            showGuidelines = !showGuidelines;
+            repaint();
+            return;
+        }
+        if (e.getKeyCode() == KeyEvent.VK_H) {
+            showHighlighting = !showHighlighting;
+            repaint();
+            return;
+        }
 
         String character = "" + e.getKeyChar();
         try {
@@ -142,12 +177,17 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     @Override
     public void mouseMoved(MouseEvent e) {
         mouseLocation = new Point(e.getX(), e.getY());
+        repaint();
     }
 
     @Override
     public void mousePressed(MouseEvent e) {
-        new InputWorker().execute();
-        repaint();
+        int x = (int) Math.floor(e.getX() / tileSize);
+        int y = (int) Math.floor(e.getY() / tileSize);
+        if (!gameOver && !startingValues[y][x]) {
+            new InputWorker().execute();
+            repaint();
+        }
     }
 
     @Override
