@@ -165,6 +165,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         return true;
     }
 
+    private void showHelpMenu() {
+        Tools.showPopup("CONTROLS:\n\nG: Show gridlines\nH: Show number highlighting");
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         if (gameOver)
@@ -211,7 +215,12 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        setupPuzzle(Integer.parseInt(e.getActionCommand()));
+        String cmd = e.getActionCommand();
+        if(cmd.equals("help")) {
+            showHelpMenu();
+            return;
+        }
+        setupPuzzle(Integer.parseInt(cmd));
         repaint();
     }
 

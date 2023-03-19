@@ -9,7 +9,7 @@ public class MainFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         SudokuPanel panel = new SudokuPanel();
         setJMenuBar(new SudokuMenuBar(panel));
-        panel.setPreferredSize(new Dimension(600, 600));
+        panel.setPreferredSize(new Dimension(700, 700));
         setResizable(false);
         setContentPane(panel);
         pack();
