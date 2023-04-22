@@ -46,6 +46,16 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     private void setTile(int x, int y, int value) {
         if (validMove(x, y, value)) {
             grid[y][x].setValue(value);
+            removePencilMarks(x, y, value);
+        }
+    }
+
+    private void removePencilMarks(int x, int y, int value) {
+        for(int i = 0; i < 9; i++) {
+            grid[i][x].removePencil(value);
+        }
+        for(int i = 0; i < 9; i++) {
+            grid[y][i].removePencil(value);
         }
     }
 
@@ -53,7 +63,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         int x = (int) Math.floor(p.getX() / tileSize);
         int y = (int) Math.floor(p.getY() / tileSize);
         if (validMove(x, y, value)) {
-            grid[y][x].setPencil(value);
+            grid[y][x].addPencil(value);
         }
     }
 

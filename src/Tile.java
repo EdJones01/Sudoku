@@ -18,7 +18,11 @@ public class Tile {
         return pencil;
     }
 
-    public void setPencil(int number) {
+    public void addPencil(int number) {
         pencil[number-1] = true;
+    }
+
+    public void removePencil(int number) {
+        pencil[number-1] = false;
     }
 }
