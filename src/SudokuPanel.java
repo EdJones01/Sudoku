@@ -1,18 +1,18 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.*;
 
 public class SudokuPanel extends JPanel implements ActionListener, MouseListener, KeyListener, MouseMotionListener {
-    private int[][] grid = new int[9][9];
+    private Tile[][] grid = new Tile[9][9];
     private int tileSize;
     private boolean[][] startingValues;
     private Point mouseLocation = new Point(0, 0);
     private boolean gameOver;
     private boolean showGuidelines = false;
     private boolean showHighlighting = false;
+    private boolean pencilMode = false;
 
     public SudokuPanel() {
         addMouseListener(this);
@@ -26,19 +26,34 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
     private void setupPuzzle(int difficulty) {
         SudokuPuzzle sudokuPuzzle = new SudokuPuzzle(difficulty);
-        grid = sudokuPuzzle.getGrid();
+        int[][] intGrid = sudokuPuzzle.getGrid();
+        grid = new Tile[9][9];
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                grid[i][j] = new Tile(intGrid[i][j]);
+            }
+        }
+
         startingValues = sudokuPuzzle.getStartingValue();
         gameOver = false;
         repaint();
     }
 
-    private int getTile(int x, int y) {
+    private Tile getTile(int x, int y) {
         return grid[y][x];
     }
 
     private void setTile(int x, int y, int value) {
         if (validMove(x, y, value)) {
-            grid[y][x] = value;
+            grid[y][x].setValue(value);
+        }
+    }
+
+    private void setTilePencil(Point p, int value) {
+        int x = (int) Math.floor(p.getX() / tileSize);
+        int y = (int) Math.floor(p.getY() / tileSize);
+        if (validMove(x, y, value)) {
+            grid[y][x].setPencil(value);
         }
     }
 
@@ -60,11 +75,11 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         if (showGuidelines && mouseWithinPanel())
             drawGuidelines(g2);
 
-        if (showHighlighting&& mouseWithinPanel())
+        if (showHighlighting && mouseWithinPanel())
             drawHighlighting(g2);
 
         if (gameOver)
-           drawGameOverScreen(g2);
+            drawGameOverScreen(g2);
     }
 
     private void drawGrid(Graphics2D g2) {
@@ -85,13 +100,34 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
-                if (grid[i][j] != 0) {
+                if (grid[i][j].getValue() != 0) {
                     if (startingValues[i][j])
                         g2.setFont(g2.getFont().deriveFont(Font.BOLD, 30));
                     else
                         g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 26));
                     Tools.centerString(g2, new Rectangle(x + j * tileSize, y + i *
-                            tileSize, tileSize, tileSize), 0, 0, Integer.toString(grid[i][j]));
+                            tileSize, tileSize, tileSize), 0, 0, Integer.toString(grid[i][j].getValue()));
+                } else {
+                    Rectangle[] pencilBoxes = new Rectangle[9];
+
+                    int rectSize = tileSize / 3;
+
+                    int index = 0;
+                    for (int row = 0; row < 3; row++) {
+                        for (int col = 0; col < 3; col++) {
+                            int px = (x + j * tileSize) + (col * rectSize);
+                            int py = (y + i * tileSize) + (row * rectSize);
+                            pencilBoxes[index] = new Rectangle(px, py, rectSize, rectSize);
+                            index++;
+                        }
+                    }
+
+                    for (int k = 0; k < 9; k++) {
+                        if (grid[i][j].getPencil()[k]) {
+                            g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 14));
+                            Tools.centerString(g2, pencilBoxes[k], 0, 0, "" + (k + 1));
+                        }
+                    }
                 }
             }
         }
@@ -108,12 +144,12 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     private void drawHighlighting(Graphics2D g2) {
         int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
         int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
-        int highlightedNumber = getTile(selectedX, selectedY);
-        if(highlightedNumber != 0) {
+        int highlightedNumber = getTile(selectedX, selectedY).getValue();
+        if (highlightedNumber != 0) {
             g2.setColor(new Color(0, 0, 255, 15));
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
-                    if (grid[i][j] == highlightedNumber)
+                    if (grid[i][j].getValue() == highlightedNumber)
                         g2.fillRect(j * tileSize, i * tileSize, tileSize, tileSize);
                 }
             }
@@ -129,8 +165,8 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     }
 
     private boolean mouseWithinPanel() {
-        return mouseLocation.getX() > -1 && mouseLocation.getX() <tileSize*9 &&
-                mouseLocation.getY() > -1 && mouseLocation.getY() < tileSize*9;
+        return mouseLocation.getX() > -1 && mouseLocation.getX() < tileSize * 9 &&
+                mouseLocation.getY() > -1 && mouseLocation.getY() < tileSize * 9;
     }
 
     private boolean validMove(int x, int y, int value) {
@@ -140,7 +176,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
             return true;
 
         for (int i = 0; i < 9; i++) {
-            if (getTile(x, i) == value || getTile(i, y) == value) {
+            if (getTile(x, i).getValue() == value || getTile(i, y).getValue() == value) {
                 return false;
             }
         }
@@ -149,7 +185,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         int subGridColumn = x / 3 * 3;
         for (int i = subGridRow; i < subGridRow + 3; i++) {
             for (int j = subGridColumn; j < subGridColumn + 3; j++) {
-                if (getTile(j, i) == value) {
+                if (getTile(j, i).getValue() == value) {
                     return false;
                 }
             }
@@ -160,19 +196,23 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     private boolean checkWin() {
         for (int i = 0; i < 9; i++)
             for (int j = 0; j < 9; j++)
-                if (grid[i][j] == 0)
+                if (grid[i][j].getValue() == 0)
                     return false;
         return true;
     }
 
     private void showHelpMenu() {
-        Tools.showPopup("CONTROLS:\n\nG: Show gridlines\nH: Show number highlighting");
+        Tools.showPopup("CONTROLS:\n\nP: Pencil mode\nG: Show gridlines\nH: Show number highlighting");
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         if (gameOver)
             return;
+        if (e.getKeyCode() == KeyEvent.VK_P) {
+            pencilMode = !pencilMode;
+            return;
+        }
         if (e.getKeyCode() == KeyEvent.VK_G) {
             showGuidelines = !showGuidelines;
             repaint();
@@ -187,9 +227,13 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         String character = "" + e.getKeyChar();
         try {
             int num = Integer.parseInt(character);
-            setTile(mouseLocation, num);
-            if (checkWin()) {
-                gameOver = true;
+            if (pencilMode) {
+                setTilePencil(mouseLocation, num);
+            } else {
+                setTile(mouseLocation, num);
+                if (checkWin()) {
+                    gameOver = true;
+                }
             }
             repaint();
         } catch (Exception ignored) {
@@ -216,7 +260,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     @Override
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
-        if(cmd.equals("help")) {
+        if (cmd.equals("help")) {
             showHelpMenu();
             return;
         }
@@ -238,7 +282,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         protected void done() {
             try {
                 int input = get();
-                setTile(location, input);
+                if (pencilMode)
+                    setTilePencil(location, input);
+                else
+                    setTile(location, input);
                 repaint();
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
