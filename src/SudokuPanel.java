@@ -11,7 +11,6 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     private boolean[][] startingValues;
     private Point mouseLocation = new Point(0, 0);
     private boolean gameOver;
-    private boolean showGuidelines = false;
     private boolean showHighlighting = false;
     private boolean pencilMode = false;
 
@@ -87,11 +86,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
         drawGrid(g2);
 
-        if (showGuidelines && mouseWithinPanel())
-            drawGuidelines(g2);
-
-        if (showHighlighting && mouseWithinPanel())
-            drawHighlighting(g2);
+        if (showHighlighting && mouseWithinPanel()) {
+            drawNumberHighlighting(g2);
+            drawGridlines(g2);
+        }
 
         if (gameOver)
             drawGameOverScreen(g2);
@@ -148,7 +146,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         }
     }
 
-    private void drawGuidelines(Graphics2D g2) {
+    private void drawGridlines(Graphics2D g2) {
         int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
         int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
         g2.setColor(new Color(255, 255, 255, 10));
@@ -156,7 +154,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         g2.fillRect(0, selectedY * tileSize, getWidth(), tileSize);
     }
 
-    private void drawHighlighting(Graphics2D g2) {
+    private void drawNumberHighlighting(Graphics2D g2) {
         int selectedX = (int) Math.floor(mouseLocation.getX() / tileSize);
         int selectedY = (int) Math.floor(mouseLocation.getY() / tileSize);
         int highlightedNumber = getTile(selectedX, selectedY).getValue();
@@ -221,7 +219,6 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
                 CONTROLS:
 
                 P: Pencil mode
-                G: Show gridlines
                 H: Show number highlighting
                 C: Fill in pencil numbers""");
     }
@@ -273,22 +270,21 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         }
     }
 
+    private void togglePencil() {
+        pencilMode = !pencilMode;
+        if(pencilMode)
+            setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+        else
+            setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         if (gameOver)
             return;
 
         if (e.getKeyCode() == KeyEvent.VK_P) {
-            pencilMode = !pencilMode;
-            if(pencilMode)
-                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-            else
-                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-            return;
-        }
-        if (e.getKeyCode() == KeyEvent.VK_G) {
-            showGuidelines = !showGuidelines;
-            repaint();
+            togglePencil();
             return;
         }
         if (e.getKeyCode() == KeyEvent.VK_H) {
@@ -348,6 +344,15 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         }
         if (cmd.equals("help")) {
             showHelpMenu();
+            return;
+        }
+        if(cmd.equals("pencil")) {
+            togglePencil();
+            return;
+        }
+        if(cmd.equals("highlighting")) {
+            showHighlighting = !showHighlighting;
+            repaint();
             return;
         }
 

@@ -9,19 +9,24 @@ public class SudokuMenuBar extends JMenuBar {
 
         JMenu fileMenu = new JMenu("File");
 
-        fileMenu.add(createButton("Save", "save"));
-        fileMenu.add(createButton("Load", "load"));
-        fileMenu.add(createButton("Help", "help"));
+        fileMenu.add(createMenuItem("Save", "save"));
+        fileMenu.add(createMenuItem("Load", "load"));
+        fileMenu.add(createMenuItem("Help", "help"));
 
         JMenu newGameMenu = new JMenu("New Game");
 
-        newGameMenu.add(createButton("Easy", ""+SudokuPuzzle.EASY));
-        newGameMenu.add(createButton("Medium", ""+SudokuPuzzle.MEDIUM));
-        newGameMenu.add(createButton("Hard", ""+SudokuPuzzle.HARD));
-        newGameMenu.add(createButton("Expert", ""+SudokuPuzzle.EXPERT));
+        newGameMenu.add(createMenuItem("Easy", ""+SudokuPuzzle.EASY));
+        newGameMenu.add(createMenuItem("Medium", ""+SudokuPuzzle.MEDIUM));
+        newGameMenu.add(createMenuItem("Hard", ""+SudokuPuzzle.HARD));
+        newGameMenu.add(createMenuItem("Expert", ""+SudokuPuzzle.EXPERT));
 
         add(fileMenu);
         add(newGameMenu);
+
+        addGap(10);
+
+        add(createButton("Pencil", "pencil"));
+        add(createButton("Highlighting", "highlighting"));
     }
 
     private JButton createButton(String name, String cmd) {
@@ -30,5 +35,16 @@ public class SudokuMenuBar extends JMenuBar {
         button.setActionCommand(cmd);
         button.setFocusable(false);
         return button;
+    }
+
+    private JMenuItem createMenuItem(String name, String cmd) {
+        JMenuItem menuItem = new JMenuItem(name);
+        menuItem.addActionListener(actionListener);
+        menuItem.setActionCommand(cmd);
+        return menuItem;
+    }
+
+    private void addGap(int size) {
+        add(Box.createHorizontalStrut(size));
     }
 }
