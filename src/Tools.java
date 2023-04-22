@@ -4,6 +4,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.FloatControl;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -420,6 +421,36 @@ public class Tools {
         if (fc.showOpenDialog(fc) == JFileChooser.APPROVE_OPTION)
             path = (fc.getSelectedFile().getAbsolutePath());
         return path + "\\";
+    }
+
+    /**
+     * Prompts the user to select a file to save to from the disk.
+     *
+     * @return A String representing the file path.
+     */
+    public static String chooseSaveFilePath() {
+        JFileChooser fc = new JFileChooser();
+        String path = null;
+        if (fc.showSaveDialog(fc) == JFileChooser.APPROVE_OPTION)
+            path = (fc.getSelectedFile().getAbsolutePath());
+        return path;
+    }
+
+    /**
+     * Prompts the user to select a file to open from the disk.
+     *
+     * @param description The descriptions of the save file types.
+     * @param extensions The file extensions for the save files.
+     * @return A String representing the file path.
+     */
+    public static String chooseOpenFilePath(String description, String[] extensions) {
+        JFileChooser fc = new JFileChooser();
+        String path = null;
+        FileNameExtensionFilter filter = new FileNameExtensionFilter(description, extensions);
+        fc.setFileFilter(filter);
+        if (fc.showOpenDialog(fc) == JFileChooser.APPROVE_OPTION)
+            path = (fc.getSelectedFile().getAbsolutePath());
+        return path;
     }
 
     /**

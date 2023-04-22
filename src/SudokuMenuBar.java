@@ -7,26 +7,28 @@ public class SudokuMenuBar extends JMenuBar {
     public SudokuMenuBar(ActionListener actionListener) {
         this.actionListener = actionListener;
 
-        add(new JLabel("Difficulty:"));
-        addGap(10);
-        addButtonToBar("Easy", ""+SudokuPuzzle.EASY);
-        addButtonToBar("Medium", ""+SudokuPuzzle.MEDIUM);
-        addButtonToBar("Hard", ""+SudokuPuzzle.HARD);
-        addButtonToBar("Expert", ""+SudokuPuzzle.EXPERT);
-        addGap(20);
-        addButtonToBar("Help", "help");
+        JMenu fileMenu = new JMenu("File");
+
+        fileMenu.add(createButton("Save", "save"));
+        fileMenu.add(createButton("Load", "load"));
+        fileMenu.add(createButton("Help", "help"));
+
+        JMenu newGameMenu = new JMenu("New Game");
+
+        newGameMenu.add(createButton("Easy", ""+SudokuPuzzle.EASY));
+        newGameMenu.add(createButton("Medium", ""+SudokuPuzzle.MEDIUM));
+        newGameMenu.add(createButton("Hard", ""+SudokuPuzzle.HARD));
+        newGameMenu.add(createButton("Expert", ""+SudokuPuzzle.EXPERT));
+
+        add(fileMenu);
+        add(newGameMenu);
     }
 
-    private void addButtonToBar(String name, String cmd) {
+    private JButton createButton(String name, String cmd) {
         JButton button = new JButton(name);
         button.addActionListener(actionListener);
         button.setActionCommand(cmd);
         button.setFocusable(false);
-        add(button);
-        addGap(5);
-    }
-
-    private void addGap(int size) {
-        add(Box.createHorizontalStrut(size));
+        return button;
     }
 }

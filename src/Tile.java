@@ -1,5 +1,5 @@
 public class Tile {
-    private int value = 0;
+    private int value;
     private final boolean[] pencil = new boolean[9];
 
     public Tile(int value) {

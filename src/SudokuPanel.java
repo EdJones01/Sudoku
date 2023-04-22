@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.*;
@@ -20,7 +21,6 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         addMouseMotionListener(this);
         setFocusable(true);
         requestFocus();
-
         setupPuzzle(SudokuPuzzle.EASY);
     }
 
@@ -47,6 +47,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
         if (validMove(x, y, value)) {
             grid[y][x].setValue(value);
             removePencilMarks(x, y, value);
+            repaint();
         }
     }
 
@@ -62,6 +63,10 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     private void setTilePencil(Point p, int value) {
         int x = (int) Math.floor(p.getX() / tileSize);
         int y = (int) Math.floor(p.getY() / tileSize);
+        setTilePencil(x, y, value);
+    }
+
+    private void setTilePencil(int x, int y, int value) {
         if (validMove(x, y, value)) {
             grid[y][x].addPencil(value);
         }
@@ -135,7 +140,7 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
                     for (int k = 0; k < 9; k++) {
                         if (grid[i][j].getPencil()[k]) {
                             g2.setFont(g2.getFont().deriveFont(Font.PLAIN, 14));
-                            Tools.centerString(g2, pencilBoxes[k], 0, 0, "" + (k + 1));
+                            Tools.centerString(g2, pencilBoxes[k], 0, 0, String.valueOf(k + 1));
                         }
                     }
                 }
@@ -212,15 +217,73 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     }
 
     private void showHelpMenu() {
-        Tools.showPopup("CONTROLS:\n\nP: Pencil mode\nG: Show gridlines\nH: Show number highlighting");
+        Tools.showPopup("""
+                CONTROLS:
+
+                P: Pencil mode
+                G: Show gridlines
+                H: Show number highlighting
+                C: Fill in pencil numbers""");
+    }
+
+    private void fillInPencil() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if(grid[j][i].getValue() == 0)
+                    for(int k = 1; k < 10; k++)
+                        setTilePencil(i, j, k);
+            }
+        }
+    }
+
+    private void save() {
+        String saveFilePath = Tools.chooseSaveFilePath() + ".sud";
+
+        StringBuilder data = new StringBuilder();
+        for(int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                String isStartingValue = startingValues[i][j] ? "y" : "n";
+                data.append(grid[i][j].getValue()).append(isStartingValue).append(" ");
+            }
+            data.append("\n");
+        }
+        try {
+            Tools.saveToFile(data.toString(), saveFilePath);
+            Tools.showPopup("Game successfully saved!");
+        } catch (IOException e) {
+            Tools.showPopup("Unable to save to: " + saveFilePath);
+        }
+    }
+
+    private void load() {
+        String loadFilePath = Tools.chooseOpenFilePath("Sudoku saves", new String[] {"sud"});
+        try {
+            String[] data = Tools.readFromFile(loadFilePath);
+            for(int i = 0; i < 9; i++) {
+                String row = data[i].replaceAll(" ", "");
+                for(int j = 0; j < 9; j++) {
+                    int value = Integer.parseInt(String.valueOf(row.charAt(j * 2)));
+                    startingValues[i][j] = (String.valueOf(row.charAt(j * 2 + 1))).equals("y");
+                    grid[i][j] = new Tile(value);
+                }
+            }
+
+        } catch (Exception e) {
+            Tools.showPopup("Unable to load from: " + loadFilePath);
+        }
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         if (gameOver)
             return;
+
         if (e.getKeyCode() == KeyEvent.VK_P) {
             pencilMode = !pencilMode;
+            if(pencilMode)
+                setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+            else
+                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
             return;
         }
         if (e.getKeyCode() == KeyEvent.VK_G) {
@@ -233,8 +296,13 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
             repaint();
             return;
         }
+        if (e.getKeyCode() == KeyEvent.VK_C) {
+            fillInPencil();
+            repaint();
+            return;
+        }
 
-        String character = "" + e.getKeyChar();
+        String character = String.valueOf(e.getKeyChar());
         try {
             int num = Integer.parseInt(character);
             if (pencilMode) {
@@ -259,8 +327,8 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-        int x = (int) Math.floor(e.getX() / tileSize);
-        int y = (int) Math.floor(e.getY() / tileSize);
+        int x = (int) (double) (e.getX() / tileSize);
+        int y = (int) (double) (e.getY() / tileSize);
         if (!gameOver && !startingValues[y][x]) {
             new InputWorker().execute();
             repaint();
@@ -270,10 +338,19 @@ public class SudokuPanel extends JPanel implements ActionListener, MouseListener
     @Override
     public void actionPerformed(ActionEvent e) {
         String cmd = e.getActionCommand();
+        if (cmd.equals("save")) {
+            save();
+            return;
+        }
+        if (cmd.equals("load")) {
+            load();
+            return;
+        }
         if (cmd.equals("help")) {
             showHelpMenu();
             return;
         }
+
         setupPuzzle(Integer.parseInt(cmd));
         repaint();
     }
